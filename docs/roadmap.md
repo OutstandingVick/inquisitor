@@ -37,11 +37,14 @@ Status: in progress
 
 | Task | Status |
 | --- | --- |
-| Connect UI to live agent endpoint | Not started |
+| Add local API boundary | Done |
+| Connect UI to mock investigation endpoint | Done |
+| Connect approval flow to mock write-action endpoint | Done |
+| Connect UI to live Agent Builder endpoint | Not started |
 | Show tool-call timeline | Static mock complete |
-| Show readiness report | Static mock complete |
-| Show approval flow | Static mock complete |
-| Show generated GitLab issues | Static mock complete |
+| Show readiness report | API-backed mock complete |
+| Show approval flow | API-backed mock complete |
+| Show generated GitLab issues | API-backed mock complete |
 
 ## Phase 5: Submission
 

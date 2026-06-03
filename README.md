@@ -73,19 +73,27 @@ docs/
 
 ## Running Locally
 
-Open `index.html` in a browser.
+Install is not required for the current prototype because it uses only built-in Node.js modules.
 
-For local hosting:
+Start the local app:
 
 ```bash
-python3 -m http.server 8000
+npm run dev
 ```
 
 Then visit:
 
 ```text
-http://localhost:8000
+http://localhost:8787
 ```
+
+Run syntax checks:
+
+```bash
+npm run check
+```
+
+The current server uses `demo-data/release-snapshot.json` as a mock GitLab MCP response. This keeps the app runnable while the real Google Cloud Agent Builder and GitLab MCP integration is wired in.
 
 ## Submission Assets
 
