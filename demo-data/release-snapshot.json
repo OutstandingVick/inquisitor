@@ -1,0 +1,41 @@
+{
+  "project": "acme/checkout-platform",
+  "release": "friday-release",
+  "readinessScore": 72,
+  "pipelines": [
+    {
+      "branch": "release/friday",
+      "status": "failed",
+      "failedJob": "checkout-e2e",
+      "evidence": "Timeout after payment-service change"
+    }
+  ],
+  "issues": [
+    {
+      "id": 184,
+      "title": "Payment confirmation intermittently fails",
+      "labels": ["release-blocker", "checkout"],
+      "status": "open"
+    }
+  ],
+  "mergeRequests": [
+    {
+      "id": 52,
+      "title": "Patch payment retry logic",
+      "status": "approved",
+      "merged": false
+    },
+    {
+      "id": 53,
+      "title": "Update release notes",
+      "status": "approved",
+      "merged": false
+    }
+  ],
+  "recommendations": [
+    "Fix failing checkout pipeline before release.",
+    "Resolve issue #184 or explicitly defer the release.",
+    "Merge approved release MRs after CI is green.",
+    "Add regression tests for recent auth-service changes."
+  ]
+}

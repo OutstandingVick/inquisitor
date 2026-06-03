@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Inquisitor | GitLab Release Risk Agent</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace">
+        <aside class="sidebar">
+          <div>
+            <p class="eyebrow">GitLab Track</p>
+            <h1>Inquisitor</h1>
+            <p class="tagline">Interrogate every release before it ships.</p>
+          </div>
+
+          <div class="status-stack">
+            <div class="status-card">
+              <span>Agent</span>
+              <strong>Gemini 3</strong>
+            </div>
+            <div class="status-card">
+              <span>Tools</span>
+              <strong>GitLab MCP</strong>
+            </div>
+            <div class="status-card">
+              <span>Mode</span>
+              <strong>Human approved</strong>
+            </div>
+          </div>
+        </aside>
+
+        <section class="main-panel">
+          <div class="command-bar">
+            <input id="releasePrompt" value="Check if our Friday release is safe to ship, identify blockers, and prepare follow-up actions." aria-label="Release investigation prompt">
+            <button id="runInvestigation">Investigate</button>
+          </div>
+
+          <section class="timeline" aria-label="Agent investigation timeline">
+            <article class="step active">
+              <span class="step-index">1</span>
+              <div>
+                <h2>Plan investigation</h2>
+                <p>Break the release check into GitLab evidence-gathering steps.</p>
+              </div>
+            </article>
+            <article class="step">
+              <span class="step-index">2</span>
+              <div>
+                <h2>Inspect GitLab state</h2>
+                <p>Read merge requests, pipelines, release blockers, and open bugs.</p>
+              </div>
+            </article>
+            <article class="step">
+              <span class="step-index">3</span>
+              <div>
+                <h2>Score release risk</h2>
+                <p>Use Gemini reasoning to identify blockers and assign readiness.</p>
+              </div>
+            </article>
+            <article class="step">
+              <span class="step-index">4</span>
+              <div>
+                <h2>Request approval</h2>
+                <p>Ask before creating follow-up GitLab issues or changing project state.</p>
+              </div>
+            </article>
+          </section>
+
+          <section class="report-grid">
+            <article class="score-panel">
+              <p class="label">Release readiness</p>
+              <div class="score"><span id="scoreValue">72</span>%</div>
+              <p id="verdict">Ship with caution. Resolve critical CI and checkout blockers first.</p>
+            </article>
+
+            <article class="evidence-panel">
+              <div class="panel-heading">
+                <p class="label">Evidence</p>
+                <span id="evidenceCount">4 findings</span>
+              </div>
+              <ul id="evidenceList"></ul>
+            </article>
+          </section>
+
+          <section class="approval-panel">
+            <div>
+              <p class="label">Recommended action</p>
+              <h2>Create follow-up issues for release blockers?</h2>
+              <p>Inquisitor will prepare issues for the failing checkout pipeline, unresolved release blocker, and missing test coverage.</p>
+            </div>
+            <button id="approveActions">Approve actions</button>
+          </section>
+
+          <section class="actions-panel" aria-live="polite">
+            <p class="label">Action log</p>
+            <ul id="actionLog">
+              <li>Waiting for approval before writing to GitLab.</li>
+            </ul>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <script src="src/frontend/app.js"></script>
+  </body>
+</html>
