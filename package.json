@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "node src/server/index.js",
     "start": "node src/server/index.js",
-    "check": "node --check src/server/index.js && node --check src/frontend/app.js"
+    "check": "node --check src/server/index.js && node --check src/frontend/app.js && node --check scripts/seed-gitlab-demo.js",
+    "seed:gitlab": "node scripts/seed-gitlab-demo.js"
   },
   "engines": {
     "node": ">=18"

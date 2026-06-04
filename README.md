@@ -58,6 +58,13 @@ The scenario centers on `acme/checkout-platform`, where the `release/friday` bra
 - Approved but unmerged release merge requests
 - A recent auth-service change without regression test evidence
 
+Create the demo labels and starter issues in a real GitLab project:
+
+```bash
+npm run seed:gitlab -- --dry-run
+GITLAB_TOKEN=your_token GITLAB_PROJECT_ID=your_project_id npm run seed:gitlab
+```
+
 This gives Inquisitor a realistic investigation target before the live GitLab MCP integration is connected.
 
 ## Repository Structure
@@ -67,6 +74,8 @@ README.md
 LICENSE
 index.html
 styles.css
+scripts/
+  seed-gitlab-demo.js
 src/
   frontend/
     app.js
@@ -74,8 +83,11 @@ src/
     index.js
   agent/
     workflow.md
+    release-investigator.js
   mcp/
     gitlab-mcp-contract.md
+    mock-gitlab-adapter.js
+    gitlab-mcp-adapter.js
 demo-data/
   gitlab-demo-project.json
   release-snapshot.json

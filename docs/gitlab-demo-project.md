@@ -18,11 +18,35 @@ This is the demo project state Inquisitor should investigate during the hackatho
 Check if our Friday release is safe to ship, identify blockers, and prepare follow-up actions.
 ```
 
+## Seed Script
+
+Use the seed script to create the demo labels and starter issues in a real GitLab project.
+
+Preview what it will do:
+
+```bash
+npm run seed:gitlab -- --dry-run
+```
+
+Run against GitLab:
+
+```bash
+GITLAB_TOKEN=your_token GITLAB_PROJECT_ID=your_project_id npm run seed:gitlab
+```
+
+Optional:
+
+```bash
+GITLAB_BASE_URL=https://gitlab.com
+```
+
+The token needs permission to read labels/issues and create labels/issues in the selected demo project.
+
 ## Required GitLab Objects
 
 ### Labels
 
-Create these labels in the demo GitLab project:
+The seed script creates these labels if they do not already exist:
 
 | Label | Color | Purpose |
 | --- | --- | --- |
@@ -35,7 +59,7 @@ Create these labels in the demo GitLab project:
 
 ### Issues
 
-Create these starting issues:
+The seed script creates these starting issues if they do not already exist:
 
 | Title | Labels | State | Purpose |
 | --- | --- | --- | --- |
