@@ -2,9 +2,13 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createReleaseInvestigator } from "../agent/release-investigator.js";
+import { createMockGitLabAdapter } from "../mcp/mock-gitlab-adapter.js";
 
 const root = normalize(join(fileURLToPath(import.meta.url), "../../.."));
 const port = Number(process.env.PORT || 8787);
+const gitlab = createMockGitLabAdapter({ root });
+const investigator = createReleaseInvestigator({ gitlab });
 
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
@@ -13,10 +17,6 @@ const contentTypes = {
   ".json": "application/json; charset=utf-8",
   ".md": "text/markdown; charset=utf-8"
 };
-
-async function readJson(path) {
-  return JSON.parse(await readFile(join(root, path), "utf8"));
-}
 
 function json(res, status, body) {
   res.writeHead(status, { "content-type": "application/json; charset=utf-8" });
@@ -35,102 +35,6 @@ async function parseBody(req) {
   }
 
   return JSON.parse(Buffer.concat(chunks).toString("utf8"));
-}
-
-function buildInvestigation(snapshot, prompt) {
-  return {
-    prompt,
-    project: snapshot.project,
-    release: snapshot.release,
-    readinessScore: snapshot.readinessScore,
-    verdict: "Ship with caution. Resolve critical CI and checkout blockers first.",
-    plan: [
-      "Inspect release branch pipeline health.",
-      "Search for open release blockers and high-priority bugs.",
-      "Review merge requests targeting the release branch.",
-      "Identify risky recent commits and missing test coverage.",
-      "Prepare approval-gated follow-up issues."
-    ],
-    evidence: [
-      {
-        severity: "critical",
-        text: `${snapshot.pipelines[0].failedJob} failed on ${snapshot.pipelines[0].branch}: ${snapshot.pipelines[0].evidence}.`
-      },
-      {
-        severity: "critical",
-        text: `Issue #${snapshot.issues[0].id} is still open and labeled ${snapshot.issues[0].labels.join(", ")}.`
-      },
-      {
-        severity: "medium",
-        text: `${snapshot.mergeRequests.length} approved merge requests have not been merged into the release branch.`
-      },
-      {
-        severity: "medium",
-        text: "Recent auth-service changes need matching regression test evidence before release."
-      }
-    ],
-    recommendations: snapshot.recommendations,
-    approvalRequest: {
-      title: "Create follow-up issues for release blockers?",
-      body: "Inquisitor will prepare issues for the failing checkout pipeline, unresolved release blocker, and missing test coverage.",
-      required: true
-    }
-  };
-}
-
-function buildApprovedActions(snapshot) {
-  return {
-    approved: true,
-    actions: [
-      {
-        type: "create_issue",
-        title: "Fix failing checkout release pipeline",
-        labels: ["release-risk", "ci", "checkout"],
-        source: `${snapshot.pipelines[0].branch} / ${snapshot.pipelines[0].failedJob}`
-      },
-      {
-        type: "create_issue",
-        title: `Resolve release blocker #${snapshot.issues[0].id}: ${snapshot.issues[0].title}`,
-        labels: ["release-risk", "release-blocker"],
-        source: `issue #${snapshot.issues[0].id}`
-      },
-      {
-        type: "create_issue",
-        title: "Add auth-service regression tests before release",
-        labels: ["release-risk", "tests"],
-        source: "recent change risk analysis"
-      }
-    ]
-  };
-}
-
-function summarizeDemoProject(demoProject) {
-  const failedJobs = demoProject.pipelines.flatMap((pipeline) =>
-    pipeline.jobs
-      .filter((job) => job.status === "failed")
-      .map((job) => ({
-        branch: pipeline.branch,
-        job: job.name,
-        reason: job.failureReason
-      }))
-  );
-
-  return {
-    project: demoProject.project,
-    counts: {
-      labels: demoProject.labels.length,
-      issues: demoProject.issues.length,
-      mergeRequests: demoProject.mergeRequests.length,
-      pipelines: demoProject.pipelines.length,
-      recentCommits: demoProject.recentCommits.length
-    },
-    releaseBlockers: demoProject.issues.filter((issue) => issue.labels.includes("release-blocker")),
-    approvedUnmergedMergeRequests: demoProject.mergeRequests.filter(
-      (mergeRequest) => mergeRequest.approved && !mergeRequest.merged
-    ),
-    failedJobs,
-    expectedReport: demoProject.expectedReport
-  };
 }
 
 async function serveStatic(req, res) {
@@ -154,20 +58,17 @@ const server = createServer(async (req, res) => {
   try {
     if (req.method === "POST" && req.url === "/api/investigate") {
       const body = await parseBody(req);
-      const snapshot = await readJson("demo-data/release-snapshot.json");
-      json(res, 200, buildInvestigation(snapshot, body.prompt || ""));
+      json(res, 200, await investigator.investigate({ prompt: body.prompt || "" }));
       return;
     }
 
     if (req.method === "POST" && req.url === "/api/approve-actions") {
-      const snapshot = await readJson("demo-data/release-snapshot.json");
-      json(res, 200, buildApprovedActions(snapshot));
+      json(res, 200, await investigator.approveActions());
       return;
     }
 
     if (req.method === "GET" && req.url === "/api/demo-project") {
-      const demoProject = await readJson("demo-data/gitlab-demo-project.json");
-      json(res, 200, summarizeDemoProject(demoProject));
+      json(res, 200, await investigator.summarizeDemoProject());
       return;
     }
 
