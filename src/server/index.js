@@ -48,7 +48,7 @@ function buildInvestigation(snapshot, prompt) {
       "Inspect release branch pipeline health.",
       "Search for open release blockers and high-priority bugs.",
       "Review merge requests targeting the release branch.",
-      "Identify risky recent changes and missing test coverage.",
+      "Identify risky recent commits and missing test coverage.",
       "Prepare approval-gated follow-up issues."
     ],
     evidence: [
@@ -104,6 +104,35 @@ function buildApprovedActions(snapshot) {
   };
 }
 
+function summarizeDemoProject(demoProject) {
+  const failedJobs = demoProject.pipelines.flatMap((pipeline) =>
+    pipeline.jobs
+      .filter((job) => job.status === "failed")
+      .map((job) => ({
+        branch: pipeline.branch,
+        job: job.name,
+        reason: job.failureReason
+      }))
+  );
+
+  return {
+    project: demoProject.project,
+    counts: {
+      labels: demoProject.labels.length,
+      issues: demoProject.issues.length,
+      mergeRequests: demoProject.mergeRequests.length,
+      pipelines: demoProject.pipelines.length,
+      recentCommits: demoProject.recentCommits.length
+    },
+    releaseBlockers: demoProject.issues.filter((issue) => issue.labels.includes("release-blocker")),
+    approvedUnmergedMergeRequests: demoProject.mergeRequests.filter(
+      (mergeRequest) => mergeRequest.approved && !mergeRequest.merged
+    ),
+    failedJobs,
+    expectedReport: demoProject.expectedReport
+  };
+}
+
 async function serveStatic(req, res) {
   const url = new URL(req.url, "http://localhost");
   const requested = url.pathname === "/" ? "/index.html" : url.pathname;
@@ -133,6 +162,12 @@ const server = createServer(async (req, res) => {
     if (req.method === "POST" && req.url === "/api/approve-actions") {
       const snapshot = await readJson("demo-data/release-snapshot.json");
       json(res, 200, buildApprovedActions(snapshot));
+      return;
+    }
+
+    if (req.method === "GET" && req.url === "/api/demo-project") {
+      const demoProject = await readJson("demo-data/gitlab-demo-project.json");
+      json(res, 200, summarizeDemoProject(demoProject));
       return;
     }
 

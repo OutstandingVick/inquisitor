@@ -47,6 +47,19 @@ Check if our Friday release is safe to ship, identify blockers, and prepare foll
 - Follow-up issue creation plan
 - Hosted demo UI for judges
 
+## Demo Scenario
+
+The demo GitLab project is modeled in `demo-data/gitlab-demo-project.json` and documented in `docs/gitlab-demo-project.md`.
+
+The scenario centers on `acme/checkout-platform`, where the `release/friday` branch has:
+
+- A failing `checkout-e2e` pipeline job
+- An open `release-blocker` issue for payment confirmation failures
+- Approved but unmerged release merge requests
+- A recent auth-service change without regression test evidence
+
+This gives Inquisitor a realistic investigation target before the live GitLab MCP integration is connected.
+
 ## Repository Structure
 
 ```text
@@ -57,15 +70,19 @@ styles.css
 src/
   frontend/
     app.js
+  server/
+    index.js
   agent/
     workflow.md
   mcp/
     gitlab-mcp-contract.md
 demo-data/
+  gitlab-demo-project.json
   release-snapshot.json
 docs/
   architecture.md
   demo-script.md
+  gitlab-demo-project.md
   judging-guide.md
   partner-integration.md
   safety.md
@@ -93,7 +110,13 @@ Run syntax checks:
 npm run check
 ```
 
-The current server uses `demo-data/release-snapshot.json` as a mock GitLab MCP response. This keeps the app runnable while the real Google Cloud Agent Builder and GitLab MCP integration is wired in.
+The current server uses `demo-data/release-snapshot.json` as a mock GitLab MCP response. The broader demo GitLab project shape is available at:
+
+```text
+http://localhost:8787/api/demo-project
+```
+
+This keeps the app runnable while the real Google Cloud Agent Builder and GitLab MCP integration is wired in.
 
 ## Submission Assets
 

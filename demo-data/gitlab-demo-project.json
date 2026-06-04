@@ -1,0 +1,173 @@
+{
+  "project": {
+    "id": "acme/checkout-platform",
+    "name": "Checkout Platform",
+    "defaultBranch": "main",
+    "releaseBranch": "release/friday",
+    "releaseOwner": {
+      "name": "Maya Chen",
+      "username": "maya.release"
+    }
+  },
+  "labels": [
+    {
+      "name": "release-blocker",
+      "color": "#D92D20",
+      "description": "Critical item that can block release"
+    },
+    {
+      "name": "release-risk",
+      "color": "#F79009",
+      "description": "Risk or follow-up generated during release review"
+    },
+    {
+      "name": "checkout",
+      "color": "#1570EF",
+      "description": "Checkout service area"
+    },
+    {
+      "name": "ci",
+      "color": "#7A5AF8",
+      "description": "Pipeline or test issue"
+    },
+    {
+      "name": "tests",
+      "color": "#12B76A",
+      "description": "Test coverage work"
+    },
+    {
+      "name": "high-priority",
+      "color": "#B42318",
+      "description": "Important release work"
+    }
+  ],
+  "issues": [
+    {
+      "iid": 184,
+      "title": "Payment confirmation intermittently fails",
+      "state": "opened",
+      "labels": ["release-blocker", "checkout", "high-priority"],
+      "assignee": "sam.payments",
+      "severity": "critical",
+      "evidence": "Support logs show payment confirmation timeouts after retry logic changed.",
+      "expectedAgentFinding": true
+    },
+    {
+      "iid": 191,
+      "title": "Add auth-service regression tests",
+      "state": "opened",
+      "labels": ["tests", "high-priority"],
+      "assignee": "nora.auth",
+      "severity": "medium",
+      "evidence": "Auth session validation changed without a matching test update.",
+      "expectedAgentFinding": true
+    },
+    {
+      "iid": 197,
+      "title": "Update Friday release notes",
+      "state": "opened",
+      "labels": ["release-risk"],
+      "assignee": "maya.release",
+      "severity": "low",
+      "evidence": "Release notes are missing checkout retry behavior.",
+      "expectedAgentFinding": false
+    }
+  ],
+  "mergeRequests": [
+    {
+      "iid": 52,
+      "title": "Patch payment retry logic",
+      "sourceBranch": "fix/payment-retry",
+      "targetBranch": "release/friday",
+      "state": "opened",
+      "approved": true,
+      "merged": false,
+      "author": "sam.payments",
+      "risk": "high",
+      "evidence": "Approved but not merged; related to the failing checkout pipeline."
+    },
+    {
+      "iid": 53,
+      "title": "Update release notes for checkout changes",
+      "sourceBranch": "docs/friday-release-notes",
+      "targetBranch": "release/friday",
+      "state": "opened",
+      "approved": true,
+      "merged": false,
+      "author": "maya.release",
+      "risk": "medium",
+      "evidence": "Approved but not merged before release review."
+    },
+    {
+      "iid": 54,
+      "title": "Refactor auth session validation",
+      "sourceBranch": "feature/auth-session-validation",
+      "targetBranch": "release/friday",
+      "state": "opened",
+      "approved": false,
+      "merged": false,
+      "author": "nora.auth",
+      "risk": "medium",
+      "evidence": "Auth-sensitive change with missing regression test evidence."
+    }
+  ],
+  "pipelines": [
+    {
+      "id": 8021,
+      "branch": "release/friday",
+      "sha": "9f41b73",
+      "status": "failed",
+      "jobs": [
+        {
+          "name": "checkout-e2e",
+          "status": "failed",
+          "stage": "test",
+          "failureReason": "Timeout waiting for payment confirmation after retry.",
+          "durationSeconds": 612
+        },
+        {
+          "name": "unit-tests",
+          "status": "passed",
+          "stage": "test",
+          "durationSeconds": 188
+        },
+        {
+          "name": "lint",
+          "status": "passed",
+          "stage": "quality",
+          "durationSeconds": 44
+        }
+      ]
+    }
+  ],
+  "recentCommits": [
+    {
+      "sha": "9f41b73",
+      "title": "Tune payment retry timeout",
+      "author": "sam.payments",
+      "filesChanged": ["services/payment/retry.ts", "services/checkout/confirm.ts"],
+      "risk": "high"
+    },
+    {
+      "sha": "0c88a12",
+      "title": "Refactor auth session validation",
+      "author": "nora.auth",
+      "filesChanged": ["services/auth/session.ts"],
+      "risk": "medium"
+    }
+  ],
+  "expectedReport": {
+    "readinessScore": 72,
+    "verdict": "Ship with caution. Resolve critical CI and checkout blockers first.",
+    "criticalBlockers": [
+      "checkout-e2e failed on release/friday",
+      "Issue #184 is open and labeled release-blocker"
+    ],
+    "recommendedActions": [
+      "Fix failing checkout pipeline.",
+      "Resolve issue #184 before shipping.",
+      "Merge approved release MRs after CI is green.",
+      "Add auth-service regression tests before release."
+    ]
+  }
+}

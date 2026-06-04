@@ -11,9 +11,32 @@ Status: in progress
 | Create demo UI shell | Done |
 | Create demo data | Done |
 | Create judging docs | Done |
-| Initialize Git repository | Blocked until permission is granted |
+| Initialize Git repository | Done |
 
-## Phase 2: GitLab MCP Integration
+## Phase 2: Local App Skeleton
+
+| Task | Status |
+| --- | --- |
+| Add local API boundary | Done |
+| Connect UI to mock investigation endpoint | Done |
+| Connect approval flow to mock write-action endpoint | Done |
+| Show tool-call timeline | Static mock complete |
+| Show readiness report | API-backed mock complete |
+| Show approval flow | API-backed mock complete |
+| Show generated GitLab issues | API-backed mock complete |
+
+## Phase 3: GitLab Demo Scenario
+
+| Task | Status |
+| --- | --- |
+| Define demo GitLab project | Done |
+| Define labels, issues, merge requests, pipeline, and commits | Done |
+| Add machine-readable demo dataset | Done |
+| Add local demo-project API summary | Done |
+| Create the objects in GitLab | Not started |
+| Connect GitLab MCP reads to the same object shape | Not started |
+
+## Phase 4: GitLab MCP Integration
 
 | Task | Status |
 | --- | --- |
@@ -23,7 +46,7 @@ Status: in progress
 | Map MCP write tools to approval-gated actions | Drafted |
 | Test against demo GitLab project | Not started |
 
-## Phase 3: Agent Builder Implementation
+## Phase 5: Agent Builder Implementation
 
 | Task | Status |
 | --- | --- |
@@ -32,21 +55,9 @@ Status: in progress
 | Add Gemini 3 reasoning flow | Not started |
 | Add approval checkpoint | Not started |
 | Add final report response format | Drafted |
-
-## Phase 4: Product Demo
-
-| Task | Status |
-| --- | --- |
-| Add local API boundary | Done |
-| Connect UI to mock investigation endpoint | Done |
-| Connect approval flow to mock write-action endpoint | Done |
 | Connect UI to live Agent Builder endpoint | Not started |
-| Show tool-call timeline | Static mock complete |
-| Show readiness report | API-backed mock complete |
-| Show approval flow | API-backed mock complete |
-| Show generated GitLab issues | API-backed mock complete |
 
-## Phase 5: Submission
+## Phase 6: Submission
 
 | Task | Status |
 | --- | --- |

@@ -1,13 +1,16 @@
 {
   "project": "acme/checkout-platform",
   "release": "friday-release",
+  "releaseBranch": "release/friday",
+  "releaseOwner": "maya.release",
   "readinessScore": 72,
   "pipelines": [
     {
+      "id": 8021,
       "branch": "release/friday",
       "status": "failed",
       "failedJob": "checkout-e2e",
-      "evidence": "Timeout after payment-service change"
+      "evidence": "Timeout after payment-service retry change"
     }
   ],
   "issues": [
@@ -15,21 +18,40 @@
       "id": 184,
       "title": "Payment confirmation intermittently fails",
       "labels": ["release-blocker", "checkout"],
-      "status": "open"
+      "status": "open",
+      "assignee": "sam.payments"
     }
   ],
   "mergeRequests": [
     {
       "id": 52,
       "title": "Patch payment retry logic",
+      "sourceBranch": "fix/payment-retry",
+      "targetBranch": "release/friday",
       "status": "approved",
       "merged": false
     },
     {
       "id": 53,
       "title": "Update release notes",
+      "sourceBranch": "docs/friday-release-notes",
+      "targetBranch": "release/friday",
       "status": "approved",
       "merged": false
+    }
+  ],
+  "recentCommits": [
+    {
+      "sha": "9f41b73",
+      "title": "Tune payment retry timeout",
+      "filesChanged": ["services/payment/retry.ts", "services/checkout/confirm.ts"],
+      "risk": "high"
+    },
+    {
+      "sha": "0c88a12",
+      "title": "Refactor auth session validation",
+      "filesChanged": ["services/auth/session.ts"],
+      "risk": "medium"
     }
   ],
   "recommendations": [
