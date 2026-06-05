@@ -41,6 +41,25 @@ async function gitlabFetch(path, options = {}) {
   return response.json();
 }
 
+async function gitlabFetchOptional(path) {
+  const response = await fetch(projectApi(path), {
+    headers: {
+      "private-token": token
+    }
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`GitLab API ${response.status}: ${body}`);
+  }
+
+  return response.json();
+}
+
 async function readDemoProject() {
   return JSON.parse(await readFile(join(root, "demo-data/gitlab-demo-project.json"), "utf8"));
 }
@@ -114,10 +133,32 @@ async function ensureIssues(issues) {
   }
 }
 
+async function ensureBranch({ branch, ref }) {
+  if (dryRun) {
+    console.log(`[dry-run] would ensure branch: ${branch} from ${ref}`);
+    return;
+  }
+
+  const existingBranch = await gitlabFetchOptional(`/repository/branches/${encodeURIComponent(branch)}`);
+
+  if (existingBranch) {
+    console.log(`branch exists: ${branch}`);
+    return;
+  }
+
+  await gitlabFetch("/repository/branches", {
+    method: "POST",
+    body: JSON.stringify({
+      branch,
+      ref
+    })
+  });
+  console.log(`created branch: ${branch}`);
+}
+
 function printManualSetup(demoProject) {
   console.log("");
   console.log("Manual setup still needed for the full demo:");
-  console.log(`- Create release branch: ${demoProject.project.releaseBranch}`);
 
   for (const mergeRequest of demoProject.mergeRequests) {
     console.log(`- Create MR: ${mergeRequest.sourceBranch} -> ${mergeRequest.targetBranch} (${mergeRequest.title})`);
@@ -136,6 +177,10 @@ async function main() {
 
   await ensureLabels(demoProject.labels);
   await ensureIssues(demoProject.issues);
+  await ensureBranch({
+    branch: demoProject.project.releaseBranch,
+    ref: demoProject.project.defaultBranch
+  });
   printManualSetup(demoProject);
 }
 

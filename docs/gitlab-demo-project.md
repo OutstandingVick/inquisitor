@@ -20,7 +20,7 @@ Check if our Friday release is safe to ship, identify blockers, and prepare foll
 
 ## Seed Script
 
-Use the seed script to create the demo labels and starter issues in a real GitLab project.
+Use the seed script to create the demo labels, starter issues, and `release/friday` branch in a real GitLab project.
 
 Preview what it will do:
 
@@ -40,7 +40,7 @@ Optional:
 GITLAB_BASE_URL=https://gitlab.com
 ```
 
-The token needs permission to read labels/issues and create labels/issues in the selected demo project.
+The token needs permission to read/create labels, read/create issues, and create branches in the selected demo project.
 
 ## Required GitLab Objects
 
@@ -66,6 +66,14 @@ The seed script creates these starting issues if they do not already exist:
 | `Payment confirmation intermittently fails` | `release-blocker`, `checkout`, `high-priority` | Open | Critical blocker Inquisitor must find |
 | `Add auth-service regression tests` | `tests`, `high-priority` | Open | Medium risk tied to recent changes |
 | `Update Friday release notes` | `release-risk` | Open | Non-blocking release task |
+
+### Branch
+
+The seed script creates this branch if it does not already exist:
+
+| Branch | Source |
+| --- | --- |
+| `release/friday` | `main` |
 
 ### Merge Requests
 
