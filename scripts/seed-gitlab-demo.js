@@ -8,6 +8,39 @@ const baseUrl = process.env.GITLAB_BASE_URL || "https://gitlab.com";
 const token = process.env.GITLAB_TOKEN;
 const projectId = process.env.GITLAB_PROJECT_ID;
 
+const demoFileByBranch = {
+  "fix/payment-retry": {
+    path: "services/payment/retry-demo.md",
+    content: [
+      "# Payment Retry Demo Change",
+      "",
+      "This branch represents the pending payment retry patch that Inquisitor should detect before release.",
+      "",
+      "Demo signal: approved but unmerged release work."
+    ].join("\n")
+  },
+  "docs/friday-release-notes": {
+    path: "docs/friday-release-notes.md",
+    content: [
+      "# Friday Release Notes",
+      "",
+      "This branch represents pending release documentation for checkout behavior.",
+      "",
+      "Demo signal: approved but unmerged release housekeeping."
+    ].join("\n")
+  },
+  "feature/auth-session-validation": {
+    path: "services/auth/session-validation-demo.md",
+    content: [
+      "# Auth Session Validation Demo Change",
+      "",
+      "This branch represents an auth-sensitive change without enough regression test evidence.",
+      "",
+      "Demo signal: medium release risk."
+    ].join("\n")
+  }
+};
+
 function requireEnv(name, value) {
   if (!value && !dryRun) {
     throw new Error(`${name} is required. Add it to your shell environment before running this script.`);
@@ -66,12 +99,23 @@ async function readDemoProject() {
 
 function issueDescription(issue) {
   return [
-    `Seeded for the Inquisitor demo release investigation.`,
+    "Seeded for the Inquisitor demo release investigation.",
     "",
     `Severity: ${issue.severity}`,
     `Evidence: ${issue.evidence}`,
     "",
     `Expected agent finding: ${issue.expectedAgentFinding ? "yes" : "no"}`
+  ].join("\n");
+}
+
+function mergeRequestDescription(mergeRequest) {
+  return [
+    "Seeded for the Inquisitor demo release investigation.",
+    "",
+    `Risk: ${mergeRequest.risk}`,
+    `Evidence: ${mergeRequest.evidence}`,
+    "",
+    "This merge request gives Inquisitor real GitLab release state to inspect."
   ].join("\n");
 }
 
@@ -156,16 +200,86 @@ async function ensureBranch({ branch, ref }) {
   console.log(`created branch: ${branch}`);
 }
 
+async function ensureFileOnBranch({ branch, file }) {
+  const encodedPath = encodeURIComponent(file.path);
+  const existingFile = dryRun
+    ? null
+    : await gitlabFetchOptional(`/repository/files/${encodedPath}?ref=${encodeURIComponent(branch)}`);
+
+  if (dryRun) {
+    console.log(`[dry-run] would ensure file on ${branch}: ${file.path}`);
+    return;
+  }
+
+  if (existingFile) {
+    console.log(`file exists on ${branch}: ${file.path}`);
+    return;
+  }
+
+  await gitlabFetch(`/repository/files/${encodedPath}`, {
+    method: "POST",
+    body: JSON.stringify({
+      branch,
+      content: file.content,
+      commit_message: `Seed demo change for ${branch}`
+    })
+  });
+  console.log(`created file on ${branch}: ${file.path}`);
+}
+
+async function ensureMergeRequest(mergeRequest) {
+  if (dryRun) {
+    console.log(
+      `[dry-run] would ensure MR: ${mergeRequest.sourceBranch} -> ${mergeRequest.targetBranch} (${mergeRequest.title})`
+    );
+    return;
+  }
+
+  const existingMergeRequests = await gitlabFetch(
+    `/merge_requests?state=opened&source_branch=${encodeURIComponent(mergeRequest.sourceBranch)}&target_branch=${encodeURIComponent(
+      mergeRequest.targetBranch
+    )}`
+  );
+
+  if (existingMergeRequests.some((existing) => existing.title === mergeRequest.title)) {
+    console.log(`merge request exists: ${mergeRequest.title}`);
+    return;
+  }
+
+  await gitlabFetch("/merge_requests", {
+    method: "POST",
+    body: JSON.stringify({
+      source_branch: mergeRequest.sourceBranch,
+      target_branch: mergeRequest.targetBranch,
+      title: mergeRequest.title,
+      description: mergeRequestDescription(mergeRequest),
+      remove_source_branch: false
+    })
+  });
+  console.log(`created merge request: ${mergeRequest.title}`);
+}
+
+async function ensureMergeRequests(mergeRequests) {
+  for (const mergeRequest of mergeRequests) {
+    await ensureBranch({
+      branch: mergeRequest.sourceBranch,
+      ref: mergeRequest.targetBranch
+    });
+    await ensureFileOnBranch({
+      branch: mergeRequest.sourceBranch,
+      file: demoFileByBranch[mergeRequest.sourceBranch]
+    });
+    await ensureMergeRequest(mergeRequest);
+  }
+}
+
 function printManualSetup(demoProject) {
   console.log("");
   console.log("Manual setup still needed for the full demo:");
 
-  for (const mergeRequest of demoProject.mergeRequests) {
-    console.log(`- Create MR: ${mergeRequest.sourceBranch} -> ${mergeRequest.targetBranch} (${mergeRequest.title})`);
-  }
-
   const failedJob = demoProject.pipelines[0].jobs.find((job) => job.status === "failed");
   console.log(`- Configure CI so ${failedJob.name} fails on ${demoProject.project.releaseBranch}`);
+  console.log("- Optional: approve the first two demo merge requests from a second GitLab account if available.");
 }
 
 async function main() {
@@ -181,6 +295,7 @@ async function main() {
     branch: demoProject.project.releaseBranch,
     ref: demoProject.project.defaultBranch
   });
+  await ensureMergeRequests(demoProject.mergeRequests);
   printManualSetup(demoProject);
 }
 

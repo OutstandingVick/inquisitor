@@ -20,7 +20,7 @@ Check if our Friday release is safe to ship, identify blockers, and prepare foll
 
 ## Seed Script
 
-Use the seed script to create the demo labels, starter issues, and `release/friday` branch in a real GitLab project.
+Use the seed script to create the demo labels, starter issues, `release/friday` branch, source branches, demo commits, and merge requests in a real GitLab project.
 
 Preview what it will do:
 
@@ -40,7 +40,7 @@ Optional:
 GITLAB_BASE_URL=https://gitlab.com
 ```
 
-The token needs permission to read/create labels, read/create issues, and create branches in the selected demo project.
+The token needs permission to read/create labels, read/create issues, create branches, create files, and create merge requests in the selected demo project.
 
 ## Required GitLab Objects
 
@@ -77,13 +77,15 @@ The seed script creates this branch if it does not already exist:
 
 ### Merge Requests
 
-Create or simulate these merge requests:
+The seed script creates source branches, adds one demo file to each branch, and opens these merge requests:
 
 | Title | Source | Target | State | Purpose |
 | --- | --- | --- | --- | --- |
-| `Patch payment retry logic` | `fix/payment-retry` | `release/friday` | Approved, unmerged | Shows pending approved work |
-| `Update release notes for checkout changes` | `docs/friday-release-notes` | `release/friday` | Approved, unmerged | Shows release housekeeping |
+| `Patch payment retry logic` | `fix/payment-retry` | `release/friday` | Open | Shows pending release work |
+| `Update release notes for checkout changes` | `docs/friday-release-notes` | `release/friday` | Open | Shows release housekeeping |
 | `Refactor auth session validation` | `feature/auth-session-validation` | `release/friday` | Open | Shows risky service change |
+
+For the strongest demo, approve the first two merge requests from a second GitLab account if available. If not, the open merge requests still give Inquisitor real GitLab release state to inspect.
 
 ### Pipeline
 
@@ -101,7 +103,7 @@ Inquisitor should return:
 - Verdict: `Ship with caution`
 - Critical blocker: failing checkout pipeline
 - Critical blocker: open `release-blocker` payment issue
-- Medium risk: approved but unmerged release MRs
+- Medium risk: open or approved release MRs
 - Medium risk: auth-service change without regression test evidence
 
 ## Expected Approval-Gated Actions
