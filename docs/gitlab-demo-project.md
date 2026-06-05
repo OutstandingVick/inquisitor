@@ -20,7 +20,7 @@ Check if our Friday release is safe to ship, identify blockers, and prepare foll
 
 ## Seed Script
 
-Use the seed script to create the demo labels, starter issues, `release/friday` branch, source branches, demo commits, and merge requests in a real GitLab project.
+Use the seed script to create the demo labels, starter issues, `release/friday` branch, source branches, demo commits, merge requests, and failing release CI in a real GitLab project.
 
 Preview what it will do:
 
@@ -40,7 +40,7 @@ Optional:
 GITLAB_BASE_URL=https://gitlab.com
 ```
 
-The token needs permission to read/create labels, read/create issues, create branches, create files, and create merge requests in the selected demo project.
+The token needs permission to read/create labels, read/create issues, create branches, create files, update files, and create merge requests in the selected demo project.
 
 ## Required GitLab Objects
 
@@ -89,11 +89,11 @@ For the strongest demo, approve the first two merge requests from a second GitLa
 
 ### Pipeline
 
-The release branch should have one failing pipeline:
+The seed script writes `.gitlab-ci.yml` on `release/friday` so this job fails intentionally:
 
 | Branch | Job | Status | Failure Signal |
 | --- | --- | --- | --- |
-| `release/friday` | `checkout-e2e` | Failed | Timeout after payment-service retry change |
+| `release/friday` | `checkout-e2e` | Failed | Simulated payment confirmation timeout after retry change |
 
 ## Expected Inquisitor Findings
 

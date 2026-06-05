@@ -8,6 +8,34 @@ const baseUrl = process.env.GITLAB_BASE_URL || "https://gitlab.com";
 const token = process.env.GITLAB_TOKEN;
 const projectId = process.env.GITLAB_PROJECT_ID;
 
+const demoCiFile = {
+  path: ".gitlab-ci.yml",
+  content: [
+    "# Inquisitor demo CI",
+    "# This pipeline is intentionally shaped so checkout-e2e fails on release/friday.",
+    "",
+    "stages:",
+    "  - quality",
+    "  - test",
+    "",
+    "lint:",
+    "  stage: quality",
+    "  script:",
+    "    - echo \"lint passed\"",
+    "",
+    "unit-tests:",
+    "  stage: test",
+    "  script:",
+    "    - echo \"unit tests passed\"",
+    "",
+    "checkout-e2e:",
+    "  stage: test",
+    "  script:",
+    "    - echo \"Simulating payment confirmation timeout after retry change\"",
+    "    - exit 1"
+  ].join("\n")
+};
+
 const demoFileByBranch = {
   "fix/payment-retry": {
     path: "services/payment/retry-demo.md",
@@ -227,6 +255,41 @@ async function ensureFileOnBranch({ branch, file }) {
   console.log(`created file on ${branch}: ${file.path}`);
 }
 
+async function ensureCiFile({ branch }) {
+  const encodedPath = encodeURIComponent(demoCiFile.path);
+  const existingFile = dryRun
+    ? null
+    : await gitlabFetchOptional(`/repository/files/${encodedPath}?ref=${encodeURIComponent(branch)}`);
+
+  if (dryRun) {
+    console.log(`[dry-run] would ensure failing CI file on ${branch}: ${demoCiFile.path}`);
+    return;
+  }
+
+  if (!existingFile) {
+    await gitlabFetch(`/repository/files/${encodedPath}`, {
+      method: "POST",
+      body: JSON.stringify({
+        branch,
+        content: demoCiFile.content,
+        commit_message: "Seed Inquisitor failing checkout CI"
+      })
+    });
+    console.log(`created failing CI file on ${branch}: ${demoCiFile.path}`);
+    return;
+  }
+
+  await gitlabFetch(`/repository/files/${encodedPath}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      branch,
+      content: demoCiFile.content,
+      commit_message: "Update Inquisitor failing checkout CI"
+    })
+  });
+  console.log(`updated failing CI file on ${branch}: ${demoCiFile.path}`);
+}
+
 async function ensureMergeRequest(mergeRequest) {
   if (dryRun) {
     console.log(
@@ -273,12 +336,9 @@ async function ensureMergeRequests(mergeRequests) {
   }
 }
 
-function printManualSetup(demoProject) {
+function printManualSetup() {
   console.log("");
-  console.log("Manual setup still needed for the full demo:");
-
-  const failedJob = demoProject.pipelines[0].jobs.find((job) => job.status === "failed");
-  console.log(`- Configure CI so ${failedJob.name} fails on ${demoProject.project.releaseBranch}`);
+  console.log("Manual setup still useful for the strongest demo:");
   console.log("- Optional: approve the first two demo merge requests from a second GitLab account if available.");
 }
 
@@ -295,8 +355,9 @@ async function main() {
     branch: demoProject.project.releaseBranch,
     ref: demoProject.project.defaultBranch
   });
+  await ensureCiFile({ branch: demoProject.project.releaseBranch });
   await ensureMergeRequests(demoProject.mergeRequests);
-  printManualSetup(demoProject);
+  printManualSetup();
 }
 
 main().catch((error) => {
