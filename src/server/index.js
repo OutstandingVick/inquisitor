@@ -3,11 +3,22 @@ import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createReleaseInvestigator } from "../agent/release-investigator.js";
+import { createGitLabMcpAdapter } from "../mcp/gitlab-mcp-adapter.js";
 import { createMockGitLabAdapter } from "../mcp/mock-gitlab-adapter.js";
 
 const root = normalize(join(fileURLToPath(import.meta.url), "../../.."));
 const port = Number(process.env.PORT || 8787);
-const gitlab = createMockGitLabAdapter({ root });
+const adapterMode = process.env.INQUISITOR_ADAPTER || "mock";
+const gitlab =
+  adapterMode === "gitlab"
+    ? createGitLabMcpAdapter({
+        baseUrl: process.env.GITLAB_BASE_URL,
+        token: process.env.GITLAB_TOKEN,
+        projectId: process.env.GITLAB_PROJECT_ID,
+        releaseBranch: process.env.GITLAB_RELEASE_BRANCH,
+        writeMode: process.env.INQUISITOR_WRITE_MODE
+      })
+    : createMockGitLabAdapter({ root });
 const investigator = createReleaseInvestigator({ gitlab });
 
 const contentTypes = {
@@ -69,6 +80,15 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "GET" && req.url === "/api/demo-project") {
       json(res, 200, await investigator.summarizeDemoProject());
+      return;
+    }
+
+    if (req.method === "GET" && req.url === "/api/health") {
+      json(res, 200, {
+        ok: true,
+        adapter: adapterMode,
+        writeMode: process.env.INQUISITOR_WRITE_MODE || "prepare"
+      });
       return;
     }
 

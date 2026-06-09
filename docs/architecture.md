@@ -53,17 +53,19 @@ Server route
 
 ## Live Integration Target
 
-The live version swaps the mock adapter for the GitLab MCP adapter.
+The live version swaps the mock adapter for the GitLab adapter:
 
 ```text
 Server route / Agent Builder tool
   -> Release Investigator
-  -> GitLab MCP Adapter
-  -> GitLab MCP Server
+  -> GitLab Adapter
+  -> GitLab project APIs / GitLab MCP Server
   -> GitLab project
 ```
 
 This keeps the release investigation logic independent from the data source. The agent can score risk, build evidence, and prepare approval-gated actions whether the data comes from the local demo dataset or GitLab MCP.
+
+Set `INQUISITOR_ADAPTER=gitlab` to run the same API against the seeded GitLab demo project.
 
 ## Why This Is Agentic
 

@@ -42,8 +42,8 @@ Status: in progress
 | --- | --- |
 | Confirm GitLab MCP server setup | Not started |
 | Connect Agent Builder tool configuration | Not started |
-| Map MCP read tools to investigation steps | Drafted |
-| Map MCP write tools to approval-gated actions | Drafted |
+| Map MCP read tools to investigation steps | Done |
+| Map MCP write tools to approval-gated actions | Done |
 | Test against demo GitLab project | Not started |
 
 ## Phase 5: Agent Builder Implementation
@@ -56,6 +56,7 @@ Status: in progress
 | Add approval checkpoint | Not started |
 | Add final report response format | Drafted |
 | Connect UI to live Agent Builder endpoint | Not started |
+| Add Agent Builder handoff docs | Done |
 
 ## Phase 6: Submission
 

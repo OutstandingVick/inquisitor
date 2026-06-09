@@ -24,10 +24,21 @@ Inquisitor now has a GitLab adapter boundary under `src/mcp`.
 | File | Purpose |
 | --- | --- |
 | `src/mcp/mock-gitlab-adapter.js` | Reads the local demo GitLab project dataset |
-| `src/mcp/gitlab-mcp-adapter.js` | Placeholder for live GitLab MCP calls |
+| `src/mcp/gitlab-mcp-adapter.js` | Live GitLab-backed adapter that maps to MCP capabilities |
 | `src/agent/release-investigator.js` | Consumes the adapter and performs the release investigation |
 
 This structure makes the mock demo honest: it is not a separate fake path. It uses the same agent interface the real GitLab MCP integration will use.
+
+The app can run in live GitLab mode with:
+
+```bash
+INQUISITOR_ADAPTER=gitlab
+GITLAB_PROJECT_ID=82910266
+GITLAB_TOKEN=...
+GITLAB_RELEASE_BRANCH=release/friday
+```
+
+In live mode, Inquisitor reads project metadata, labels, issues, merge requests, pipeline jobs, and recent commits from the seeded GitLab project.
 
 ## Centrality
 

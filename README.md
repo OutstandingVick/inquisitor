@@ -93,6 +93,8 @@ demo-data/
   release-snapshot.json
 docs/
   architecture.md
+  agent-builder-integration.md
+  agent-builder-openapi.yaml
   demo-script.md
   gitlab-demo-project.md
   judging-guide.md
@@ -129,6 +131,18 @@ http://localhost:8787/api/demo-project
 ```
 
 This keeps the app runnable while the real Google Cloud Agent Builder and GitLab MCP integration is wired in.
+
+Run against the seeded GitLab demo project:
+
+```bash
+INQUISITOR_ADAPTER=gitlab \
+GITLAB_PROJECT_ID=82910266 \
+GITLAB_TOKEN=your_token \
+GITLAB_RELEASE_BRANCH=release/friday \
+npm start
+```
+
+See `docs/agent-builder-integration.md` for the Agent Builder handoff plan.
 
 ## Submission Assets
 

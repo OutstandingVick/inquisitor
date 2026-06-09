@@ -52,9 +52,9 @@ Frontend
 → Mock data now / GitLab MCP later
 ```
 
-The current prototype uses a mock GitLab adapter backed by `demo-data/gitlab-demo-project.json`, plus a GitLab seed script that creates the demo labels, issues, branches, merge requests, and failing release CI in a real GitLab project. The adapter boundary is designed so the mock adapter can be swapped for the GitLab MCP adapter without rewriting the release investigation logic.
+The current prototype uses a mock GitLab adapter backed by `demo-data/gitlab-demo-project.json`, plus a GitLab seed script that creates the demo labels, issues, branches, merge requests, and failing release CI in a real GitLab project. The app also includes a live GitLab adapter mode that can read the seeded GitLab project using `INQUISITOR_ADAPTER=gitlab`.
 
-The intended challenge architecture is Google Cloud Agent Builder for orchestration, Gemini 3 for planning and reasoning, and GitLab MCP as the operational tool layer.
+The intended challenge architecture is Google Cloud Agent Builder for orchestration, Gemini 3 for planning and reasoning, and GitLab MCP as the operational tool layer. The Agent Builder handoff is documented in `docs/agent-builder-integration.md`.
 
 ## Partner Integration
 
@@ -65,7 +65,7 @@ The project includes:
 - A GitLab demo-project seed script
 - A GitLab adapter contract
 - A mock GitLab adapter with the same shape as the future MCP adapter
-- A placeholder `gitlab-mcp-adapter.js` for live MCP calls
+- A live `gitlab-mcp-adapter.js` that reads GitLab project evidence and can prepare/create approved follow-up issues
 - Documentation mapping Inquisitor’s investigation steps to GitLab MCP capabilities
 
 The GitLab MCP integration is the planned execution layer. Without GitLab/MCP, Inquisitor can only model release evidence; with GitLab/MCP, it can inspect live project state and prepare approved follow-up actions.

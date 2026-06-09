@@ -1,0 +1,116 @@
+openapi: 3.0.3
+info:
+  title: Inquisitor Release Risk API
+  version: 0.1.0
+  description: Tool API for the Inquisitor GitLab release risk agent.
+servers:
+  - url: https://inquisitor-42jb.onrender.com
+paths:
+  /api/health:
+    get:
+      operationId: getInquisitorHealth
+      summary: Check adapter mode and service health.
+      responses:
+        "200":
+          description: Health response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  adapter:
+                    type: string
+                    enum: [mock, gitlab]
+                  writeMode:
+                    type: string
+                    enum: [prepare, live]
+  /api/demo-project:
+    get:
+      operationId: getDemoProjectSummary
+      summary: Get the GitLab project evidence shape used by Inquisitor.
+      responses:
+        "200":
+          description: Demo project evidence summary.
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/investigate:
+    post:
+      operationId: investigateRelease
+      summary: Investigate release readiness and return a risk report.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prompt
+              properties:
+                prompt:
+                  type: string
+                  example: Check if our Friday release is safe to ship.
+      responses:
+        "200":
+          description: Release readiness report.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  prompt:
+                    type: string
+                  project:
+                    type: string
+                  release:
+                    type: string
+                  readinessScore:
+                    type: number
+                  verdict:
+                    type: string
+                  plan:
+                    type: array
+                    items:
+                      type: string
+                  evidence:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        severity:
+                          type: string
+                        text:
+                          type: string
+                  recommendations:
+                    type: array
+                    items:
+                      type: string
+                  approvalRequest:
+                    type: object
+  /api/approve-actions:
+    post:
+      operationId: approveReleaseActions
+      summary: Prepare or create approved GitLab follow-up issue actions.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Approval-gated action result.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  approved:
+                    type: boolean
+                  actions:
+                    type: array
+                    items:
+                      type: object
