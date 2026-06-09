@@ -1,4 +1,4 @@
-# Devpost Draft
+# Devpost Submission Draft
 
 ## Project Name
 
@@ -8,16 +8,33 @@ Inquisitor
 
 - Hosted demo: https://inquisitor-42jb.onrender.com
 - Source code: https://github.com/OutstandingVick/inquisitor
+- Demo video: TBD
 
 ## Tagline
 
 Interrogate every release before it ships.
 
+## Track
+
+GitLab
+
+## Elevator Pitch
+
+Inquisitor is a release-readiness investigator for GitLab projects. It checks the evidence engineering teams normally inspect by hand, turns that evidence into a release risk report, and prepares follow-up actions that stay behind a human approval step.
+
 ## What It Does
 
-Inquisitor is a Gemini-powered release risk agent for GitLab. It helps engineering teams determine whether a release is safe by investigating issues, merge requests, CI pipelines, and release blockers through the GitLab MCP server.
+Inquisitor helps engineering teams determine whether a release is safe by investigating issues, merge requests, CI pipelines, release blockers, and risky recent changes.
 
-The agent plans a release investigation, gathers evidence from GitLab, generates a readiness score, highlights blockers, asks for approval, and prepares follow-up GitLab issues for unresolved risks.
+The agent workflow plans a release investigation, gathers GitLab-shaped project evidence, generates a readiness score, highlights blockers, asks for approval, and prepares follow-up issue actions for unresolved risks.
+
+The hosted demo shows a Friday release review for `acme/checkout-platform`, including:
+
+- A failing `checkout-e2e` pipeline signal
+- An open `release-blocker` payment issue
+- Pending release merge requests
+- A risky auth-service change without regression test evidence
+- Approval-gated follow-up issue drafts
 
 ## Inspiration
 
@@ -25,40 +42,93 @@ Release decisions are often made under time pressure, and the required evidence 
 
 ## How We Built It
 
-Inquisitor is designed around Google Cloud Agent Builder for orchestration, Gemini 3 for planning and reasoning, and GitLab MCP as the operational tool layer. The hosted demo shows the release investigation workflow, approval checkpoint, and final readiness report.
+Inquisitor is built as a small Node.js application with a deliberately agent-shaped architecture:
+
+```text
+Frontend
+→ Server API
+→ Release Investigator
+→ GitLab Adapter
+→ Mock data now / GitLab MCP later
+```
+
+The current prototype uses a mock GitLab adapter backed by `demo-data/gitlab-demo-project.json`, plus a GitLab seed script that creates the demo labels, issues, branches, merge requests, and failing release CI in a real GitLab project. The adapter boundary is designed so the mock adapter can be swapped for the GitLab MCP adapter without rewriting the release investigation logic.
+
+The intended challenge architecture is Google Cloud Agent Builder for orchestration, Gemini 3 for planning and reasoning, and GitLab MCP as the operational tool layer.
 
 ## Partner Integration
 
-The GitLab MCP server is central to Inquisitor. It gives the agent access to the project evidence needed to make a release decision:
+GitLab is the natural partner for this workflow because release readiness lives inside GitLab: issues, merge requests, pipelines, commits, labels, and comments.
 
-- Open release blockers
-- Merge request state
-- CI pipeline health
-- Failed jobs
-- Recent commits
-- Follow-up issue creation
+The project includes:
 
-Without the GitLab MCP integration, Inquisitor could only describe release best practices. With it, the agent can inspect a real project and prepare approved follow-up actions.
+- A GitLab demo-project seed script
+- A GitLab adapter contract
+- A mock GitLab adapter with the same shape as the future MCP adapter
+- A placeholder `gitlab-mcp-adapter.js` for live MCP calls
+- Documentation mapping Inquisitor’s investigation steps to GitLab MCP capabilities
+
+The GitLab MCP integration is the planned execution layer. Without GitLab/MCP, Inquisitor can only model release evidence; with GitLab/MCP, it can inspect live project state and prepare approved follow-up actions.
 
 ## What Makes It An Agent
 
 Inquisitor does not just answer release questions. It:
 
 - Plans a multi-step investigation
-- Uses GitLab MCP tools
-- Reasons over project evidence
+- Uses a tool/adapter boundary to gather project evidence
+- Reasons over release risk signals
 - Requests approval before writes
-- Prepares concrete follow-up issues
+- Prepares concrete follow-up issue actions
 - Produces a release decision report
+
+## How To Test
+
+Hosted demo:
+
+```text
+https://inquisitor-42jb.onrender.com
+```
+
+Use the default prompt:
+
+```text
+Check if our Friday release is safe to ship, identify blockers, and prepare follow-up actions.
+```
+
+Expected result:
+
+1. The UI runs an investigation.
+2. Inquisitor returns a `72%` readiness score.
+3. It identifies the failing checkout pipeline and open release blocker.
+4. It asks for approval before preparing write actions.
+5. After approval, it prepares follow-up GitLab issue drafts.
+
+API endpoint for the demo scenario:
+
+```text
+https://inquisitor-42jb.onrender.com/api/demo-project
+```
 
 ## Challenges
 
 The hardest part is making the agent decisive without making it reckless. Release decisions affect real teams, so Inquisitor is designed to investigate automatically but require approval before any GitLab write action.
 
+Another challenge was making the prototype judgeable before the final live Agent Builder/MCP wiring. To solve that, the app uses a GitLab adapter boundary and a real GitLab demo seeding workflow so the mock and live implementations share the same shape.
+
+## Accomplishments
+
+- Built a hosted release-risk investigation UI
+- Added a reusable release investigator module
+- Added a GitLab adapter boundary
+- Created a realistic GitLab demo project dataset
+- Added a seed script for GitLab labels, issues, branches, merge requests, and failing CI
+- Added approval-gated follow-up action preparation
+- Documented architecture, safety, judging flow, and partner integration
+
 ## What's Next
 
-- Connect the UI to the live Agent Builder endpoint
-- Test against a real GitLab demo project
+- Connect the UI to the live Google Cloud Agent Builder endpoint
+- Replace the mock adapter with live GitLab MCP calls
 - Add CI log summarization
 - Add unresolved review thread analysis
 - Add release note generation
