@@ -131,6 +131,12 @@ The current server uses `demo-data/release-snapshot.json` as a mock GitLab MCP r
 http://localhost:8787/api/demo-project
 ```
 
+The MCP endpoint is available at:
+
+```text
+http://localhost:8787/mcp
+```
+
 This keeps the app runnable while the real Google Cloud Agent Builder and GitLab MCP integration is wired in.
 
 Run against the seeded GitLab demo project:

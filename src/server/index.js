@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createReleaseInvestigator } from "../agent/release-investigator.js";
+import { handleMcpRequest } from "../mcp/mcp-http-handler.js";
 import { createGitLabMcpAdapter } from "../mcp/gitlab-mcp-adapter.js";
 import { createMockGitLabAdapter } from "../mcp/mock-gitlab-adapter.js";
 
@@ -67,6 +68,13 @@ async function serveStatic(req, res) {
 
 const server = createServer(async (req, res) => {
   try {
+    const url = new URL(req.url, "http://localhost");
+
+    if (url.pathname === "/mcp") {
+      await handleMcpRequest({ req, res, investigator, parseBody });
+      return;
+    }
+
     if (req.method === "POST" && req.url === "/api/investigate") {
       const body = await parseBody(req);
       json(res, 200, await investigator.investigate({ prompt: body.prompt || "" }));

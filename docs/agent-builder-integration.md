@@ -60,6 +60,20 @@ An OpenAPI tool specification is provided at:
 docs/agent-builder-openapi.yaml
 ```
 
+If Agent Studio asks for an MCP server instead of an OpenAPI tool, use:
+
+```text
+MCP display name: Inquisitor
+Endpoint URL: https://inquisitor-42jb.onrender.com/mcp
+Authentication: None
+```
+
+The `/mcp` endpoint exposes:
+
+- `investigate_release`
+- `approve_release_actions`
+- `get_demo_project_summary`
+
 ## Gemini Role
 
 Gemini should handle:

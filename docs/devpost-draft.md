@@ -68,6 +68,7 @@ The project includes:
 - A GitLab adapter contract
 - A mock GitLab adapter with the same shape as the future MCP adapter
 - A live `gitlab-mcp-adapter.js` that reads GitLab project evidence and can prepare/create approved follow-up issues
+- A Streamable HTTP MCP endpoint at `/mcp` for Agent Studio tool setup
 - Documentation mapping Inquisitor’s investigation steps to GitLab MCP capabilities
 
 The GitLab MCP integration is the planned execution layer. Without GitLab/MCP, Inquisitor can only model release evidence; with GitLab/MCP, it can inspect live project state and prepare approved follow-up actions.
