@@ -4,6 +4,11 @@
 
 Inquisitor
 
+## Links
+
+- Hosted demo: https://inquisitor-42jb.onrender.com
+- Source code: https://github.com/OutstandingVick/inquisitor
+
 ## Tagline
 
 Interrogate every release before it ships.

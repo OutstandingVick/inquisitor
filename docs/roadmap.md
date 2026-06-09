@@ -33,7 +33,7 @@ Status: in progress
 | Define labels, issues, merge requests, pipeline, and commits | Done |
 | Add machine-readable demo dataset | Done |
 | Add local demo-project API summary | Done |
-| Create the objects in GitLab | Not started |
+| Create the objects in GitLab | Done |
 | Connect GitLab MCP reads to the same object shape | Not started |
 
 ## Phase 4: GitLab MCP Integration
@@ -61,8 +61,8 @@ Status: in progress
 
 | Task | Status |
 | --- | --- |
-| Deploy hosted demo | Not started |
-| Make repository public | Not started |
+| Deploy hosted demo | Done |
+| Make repository public | Done |
 | Record 3-minute demo | Script drafted |
 | Complete Devpost form | Draft copy created |
 | Verify license visibility | License file created |

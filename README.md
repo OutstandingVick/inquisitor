@@ -132,8 +132,8 @@ This keeps the app runnable while the real Google Cloud Agent Builder and GitLab
 
 ## Submission Assets
 
-- Hosted project URL: TBD
-- Public repository URL: TBD
+- Hosted project URL: https://inquisitor-42jb.onrender.com
+- Public repository URL: https://github.com/OutstandingVick/inquisitor
 - Demo video URL: TBD
 - Devpost URL: TBD
 
