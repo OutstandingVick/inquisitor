@@ -96,6 +96,7 @@ docs/
   agent-builder-integration.md
   agent-builder-openapi.yaml
   demo-script.md
+  render-live-mode.md
   gitlab-demo-project.md
   judging-guide.md
   partner-integration.md
@@ -143,6 +144,8 @@ npm start
 ```
 
 See `docs/agent-builder-integration.md` for the Agent Builder handoff plan.
+
+See `docs/render-live-mode.md` for enabling the hosted Render app against the seeded live GitLab project.
 
 ## Submission Assets
 

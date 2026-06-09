@@ -57,12 +57,14 @@ Status: in progress
 | Add final report response format | Drafted |
 | Connect UI to live Agent Builder endpoint | Not started |
 | Add Agent Builder handoff docs | Done |
+| Add Agent Builder OpenAPI tool spec | Done |
 
 ## Phase 6: Submission
 
 | Task | Status |
 | --- | --- |
 | Deploy hosted demo | Done |
+| Add Render live-mode configuration docs | Done |
 | Make repository public | Done |
 | Record 3-minute demo | Script drafted |
 | Complete Devpost form | Draft copy created |

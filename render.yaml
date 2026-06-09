@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: inquisitor
+    runtime: node
+    plan: free
+    buildCommand: npm run check
+    startCommand: npm start
+    envVars:
+      - key: INQUISITOR_ADAPTER
+        value: mock
+      - key: INQUISITOR_WRITE_MODE
+        value: prepare
+      - key: GITLAB_BASE_URL
+        value: https://gitlab.com
+      - key: GITLAB_PROJECT_ID
+        value: "82910266"
+      - key: GITLAB_RELEASE_BRANCH
+        value: release/friday
+      - key: GITLAB_TOKEN
+        sync: false

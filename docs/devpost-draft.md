@@ -56,6 +56,8 @@ The current prototype uses a mock GitLab adapter backed by `demo-data/gitlab-dem
 
 The intended challenge architecture is Google Cloud Agent Builder for orchestration, Gemini 3 for planning and reasoning, and GitLab MCP as the operational tool layer. The Agent Builder handoff is documented in `docs/agent-builder-integration.md`.
 
+For deployment, the public Render service defaults to safe mock mode. `docs/render-live-mode.md` explains how to switch the hosted service to `INQUISITOR_ADAPTER=gitlab` using Render environment variables.
+
 ## Partner Integration
 
 GitLab is the natural partner for this workflow because release readiness lives inside GitLab: issues, merge requests, pipelines, commits, labels, and comments.
