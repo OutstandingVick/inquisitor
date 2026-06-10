@@ -1,4 +1,18 @@
 const protocolVersion = "2025-06-18";
+const sessionId = "inquisitor-session";
+
+function responseHeaders(contentType = "application/json; charset=utf-8") {
+  return {
+    "access-control-allow-headers":
+      "content-type, mcp-protocol-version, mcp-session-id, authorization",
+    "access-control-allow-methods": "GET, POST, DELETE, OPTIONS",
+    "access-control-allow-origin": "*",
+    "access-control-expose-headers": "mcp-protocol-version, mcp-session-id",
+    "content-type": contentType,
+    "mcp-protocol-version": protocolVersion,
+    "mcp-session-id": sessionId
+  };
+}
 
 function textResult(value) {
   return {
@@ -65,7 +79,7 @@ async function callTool(investigator, params = {}) {
 }
 
 async function handleMessage(investigator, message) {
-  if (!message.id) {
+  if (message.id === undefined || message.id === null) {
     return null;
   }
 
@@ -97,11 +111,22 @@ async function handleMessage(investigator, message) {
   }
 
   if (message.method === "tools/call") {
-    return {
-      jsonrpc: "2.0",
-      id: message.id,
-      result: await callTool(investigator, message.params)
-    };
+    try {
+      return {
+        jsonrpc: "2.0",
+        id: message.id,
+        result: await callTool(investigator, message.params)
+      };
+    } catch (error) {
+      return {
+        jsonrpc: "2.0",
+        id: message.id,
+        error: {
+          code: -32603,
+          message: error.message
+        }
+      };
+    }
   }
 
   return {
@@ -115,11 +140,26 @@ async function handleMessage(investigator, message) {
 }
 
 export async function handleMcpRequest({ req, res, investigator, parseBody }) {
+  if (req.method === "OPTIONS") {
+    res.writeHead(204, responseHeaders());
+    res.end();
+    return;
+  }
+
   if (req.method === "GET") {
-    res.writeHead(200, {
-      "content-type": "application/json; charset=utf-8",
-      "mcp-protocol-version": protocolVersion
-    });
+    if ((req.headers.accept || "").includes("text/event-stream")) {
+      res.writeHead(200, responseHeaders("text/event-stream; charset=utf-8"));
+      res.end(
+        `event: endpoint\ndata: ${JSON.stringify({
+          uri: "/mcp",
+          name: "inquisitor",
+          protocolVersion
+        })}\n\n`
+      );
+      return;
+    }
+
+    res.writeHead(200, responseHeaders());
     res.end(
       JSON.stringify({
         name: "inquisitor",
@@ -131,8 +171,14 @@ export async function handleMcpRequest({ req, res, investigator, parseBody }) {
     return;
   }
 
+  if (req.method === "DELETE") {
+    res.writeHead(202, responseHeaders());
+    res.end();
+    return;
+  }
+
   if (req.method !== "POST") {
-    res.writeHead(405, { "content-type": "application/json; charset=utf-8" });
+    res.writeHead(405, responseHeaders());
     res.end(JSON.stringify({ error: "method_not_allowed" }));
     return;
   }
@@ -150,16 +196,11 @@ export async function handleMcpRequest({ req, res, investigator, parseBody }) {
   }
 
   if (responses.length === 0) {
-    res.writeHead(202, {
-      "mcp-protocol-version": protocolVersion
-    });
+    res.writeHead(202, responseHeaders());
     res.end();
     return;
   }
 
-  res.writeHead(200, {
-    "content-type": "application/json; charset=utf-8",
-    "mcp-protocol-version": protocolVersion
-  });
+  res.writeHead(200, responseHeaders());
   res.end(JSON.stringify(Array.isArray(body) ? responses : responses[0]));
 }
