@@ -3,7 +3,7 @@ services:
     name: inquisitor
     runtime: node
     plan: free
-    buildCommand: npm run check
+    buildCommand: npm ci && npm run check
     startCommand: npm start
     envVars:
       - key: INQUISITOR_ADAPTER
