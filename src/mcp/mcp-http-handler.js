@@ -1,18 +1,6 @@
-const protocolVersion = "2025-06-18";
-const sessionId = "inquisitor-session";
-
-function responseHeaders(contentType = "application/json; charset=utf-8") {
-  return {
-    "access-control-allow-headers":
-      "content-type, mcp-protocol-version, mcp-session-id, authorization",
-    "access-control-allow-methods": "GET, POST, DELETE, OPTIONS",
-    "access-control-allow-origin": "*",
-    "access-control-expose-headers": "mcp-protocol-version, mcp-session-id",
-    "content-type": contentType,
-    "mcp-protocol-version": protocolVersion,
-    "mcp-session-id": sessionId
-  };
-}
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { z } from "zod";
 
 function textResult(value) {
   return {
@@ -25,182 +13,96 @@ function textResult(value) {
   };
 }
 
-function toolDefinitions() {
-  return [
+function createMcpServer(investigator) {
+  const server = new McpServer({
+    name: "inquisitor",
+    version: "0.1.0"
+  });
+
+  server.registerTool(
+    "investigate_release",
     {
-      name: "investigate_release",
       description: "Investigate GitLab release readiness and return a risk report.",
       inputSchema: {
-        type: "object",
-        properties: {
-          prompt: {
-            type: "string",
-            description: "The user's release-readiness request."
-          }
-        },
-        required: ["prompt"]
+        prompt: z.string().describe("The user's release-readiness request.")
       }
     },
+    async ({ prompt }) => textResult(await investigator.investigate({ prompt }))
+  );
+
+  server.registerTool(
+    "approve_release_actions",
     {
-      name: "approve_release_actions",
       description: "Prepare or create approved follow-up issue actions after user approval.",
-      inputSchema: {
-        type: "object",
-        properties: {}
-      }
+      inputSchema: {}
     },
+    async () => textResult(await investigator.approveActions())
+  );
+
+  server.registerTool(
+    "get_demo_project_summary",
     {
-      name: "get_demo_project_summary",
       description: "Return the current GitLab project evidence summary used by Inquisitor.",
-      inputSchema: {
-        type: "object",
-        properties: {}
-      }
-    }
-  ];
+      inputSchema: {}
+    },
+    async () => textResult(await investigator.summarizeDemoProject())
+  );
+
+  return server;
 }
 
-async function callTool(investigator, params = {}) {
-  const args = params.arguments || {};
-
-  if (params.name === "investigate_release") {
-    return textResult(await investigator.investigate({ prompt: args.prompt || "" }));
-  }
-
-  if (params.name === "approve_release_actions") {
-    return textResult(await investigator.approveActions());
-  }
-
-  if (params.name === "get_demo_project_summary") {
-    return textResult(await investigator.summarizeDemoProject());
-  }
-
-  throw new Error(`Unknown MCP tool: ${params.name}`);
+function writeCorsPreflight(res) {
+  res.writeHead(204, {
+    "access-control-allow-headers":
+      "content-type, accept, mcp-protocol-version, mcp-session-id, authorization",
+    "access-control-allow-methods": "GET, POST, DELETE, OPTIONS",
+    "access-control-allow-origin": "*"
+  });
+  res.end();
 }
 
-async function handleMessage(investigator, message) {
-  if (message.id === undefined || message.id === null) {
-    return null;
-  }
-
-  if (message.method === "initialize") {
-    return {
+function writeMcpError(res, status, message) {
+  res.writeHead(status, {
+    "access-control-allow-origin": "*",
+    "content-type": "application/json; charset=utf-8"
+  });
+  res.end(
+    JSON.stringify({
       jsonrpc: "2.0",
-      id: message.id,
-      result: {
-        protocolVersion,
-        capabilities: {
-          tools: {}
-        },
-        serverInfo: {
-          name: "inquisitor",
-          version: "0.1.0"
-        }
-      }
-    };
-  }
-
-  if (message.method === "tools/list") {
-    return {
-      jsonrpc: "2.0",
-      id: message.id,
-      result: {
-        tools: toolDefinitions()
-      }
-    };
-  }
-
-  if (message.method === "tools/call") {
-    try {
-      return {
-        jsonrpc: "2.0",
-        id: message.id,
-        result: await callTool(investigator, message.params)
-      };
-    } catch (error) {
-      return {
-        jsonrpc: "2.0",
-        id: message.id,
-        error: {
-          code: -32603,
-          message: error.message
-        }
-      };
-    }
-  }
-
-  return {
-    jsonrpc: "2.0",
-    id: message.id,
-    error: {
-      code: -32601,
-      message: `Method not found: ${message.method}`
-    }
-  };
+      error: {
+        code: -32000,
+        message
+      },
+      id: null
+    })
+  );
 }
 
 export async function handleMcpRequest({ req, res, investigator, parseBody }) {
   if (req.method === "OPTIONS") {
-    res.writeHead(204, responseHeaders());
-    res.end();
+    writeCorsPreflight(res);
     return;
   }
 
-  if (req.method === "GET") {
-    if ((req.headers.accept || "").includes("text/event-stream")) {
-      res.writeHead(200, responseHeaders("text/event-stream; charset=utf-8"));
-      res.end(
-        `event: endpoint\ndata: ${JSON.stringify({
-          uri: "/mcp",
-          name: "inquisitor",
-          protocolVersion
-        })}\n\n`
-      );
-      return;
+  const server = createMcpServer(investigator);
+  const transport = new StreamableHTTPServerTransport({
+    enableJsonResponse: true,
+    sessionIdGenerator: undefined
+  });
+
+  try {
+    await server.connect(transport);
+
+    const body = req.method === "POST" ? await parseBody(req) : undefined;
+    await transport.handleRequest(req, res, body);
+  } catch (error) {
+    if (!res.headersSent) {
+      writeMcpError(res, 500, error.message || "Internal MCP server error");
     }
-
-    res.writeHead(200, responseHeaders());
-    res.end(
-      JSON.stringify({
-        name: "inquisitor",
-        protocolVersion,
-        transport: "streamable-http",
-        tools: toolDefinitions().map((tool) => tool.name)
-      })
-    );
-    return;
+  } finally {
+    res.on("close", async () => {
+      await transport.close();
+      await server.close();
+    });
   }
-
-  if (req.method === "DELETE") {
-    res.writeHead(202, responseHeaders());
-    res.end();
-    return;
-  }
-
-  if (req.method !== "POST") {
-    res.writeHead(405, responseHeaders());
-    res.end(JSON.stringify({ error: "method_not_allowed" }));
-    return;
-  }
-
-  const body = await parseBody(req);
-  const messages = Array.isArray(body) ? body : [body];
-  const responses = [];
-
-  for (const message of messages) {
-    const response = await handleMessage(investigator, message);
-
-    if (response) {
-      responses.push(response);
-    }
-  }
-
-  if (responses.length === 0) {
-    res.writeHead(202, responseHeaders());
-    res.end();
-    return;
-  }
-
-  res.writeHead(200, responseHeaders());
-  res.end(JSON.stringify(Array.isArray(body) ? responses : responses[0]));
 }
